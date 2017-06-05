@@ -75,6 +75,8 @@ enum bpf_cmd {
 	BPF_OBJ_GET,
 	BPF_PROG_ATTACH,
 	BPF_PROG_DETACH,
+	BPF_PROG_GET_NEXT_ID,
+	BPF_MAP_GET_NEXT_ID,
 };
 
 enum bpf_map_type {
@@ -205,6 +207,11 @@ union bpf_attr {
 		__u32		attach_bpf_fd;	/* eBPF program to attach */
 		__u32		attach_type;
 		__u32		attach_flags;
+	};
+
+	struct { /* anonymous struct used by BPF_*_GET_NEXT_ID */
+		__u32		start_id;
+		__u32		next_id;
 	};
 } __attribute__((aligned(8)));
 
