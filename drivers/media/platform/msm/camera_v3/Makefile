@@ -11,3 +11,7 @@ obj-$(CONFIG_SPECTRA_CAMERA) += cam_icp/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_jpeg/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_fd/
 obj-$(CONFIG_SPECTRA_CAMERA) += cam_lrme/
+
+# TODO: remove me b/62058353
+subdir-ccflags-y += \
+	-Wno-pointer-bool-conversion \

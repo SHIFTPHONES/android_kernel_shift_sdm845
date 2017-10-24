@@ -68,3 +68,7 @@ ccflags-$(CONFIG_PCI_DEBUG) := -DDEBUG
 
 # PCI host controller drivers
 obj-y += host/
+
+# TODO: remove me b/62058353
+subdir-ccflags-y += \
+	-Wno-pointer-bool-conversion \
