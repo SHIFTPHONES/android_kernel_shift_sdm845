@@ -52,14 +52,18 @@ endif
 ifeq ($(KERNEL_LLVM_SUPPORT), true)
   ifeq ($(KERNEL_SD_LLVM_SUPPORT), true)  #Using sd-llvm compiler
     ifeq ($(shell echo $(SDCLANG_PATH) | head -c 1),/)
-       KERNEL_LLVM_BIN := $(SDCLANG_PATH)/clang
+      KERNEL_LLVM_BIN := $(SDCLANG_PATH)/clang
     else
-       KERNEL_LLVM_BIN := $(shell pwd)/$(SDCLANG_PATH)/clang
+      KERNEL_LLVM_BIN := $(shell pwd)/$(SDCLANG_PATH)/clang
     endif
     $(warning "Using sdllvm" $(KERNEL_LLVM_BIN))
   else
-     KERNEL_LLVM_BIN := $(shell pwd)/$(CLANG) #Using aosp-llvm compiler
-    $(warning "Using aosp-llvm" $(KERNEL_LLVM_BIN))
+    ifeq ($(KERNEL_LLVM_BIN),)
+      KERNEL_LLVM_BIN := $(shell pwd)/$(CLANG) #Using aosp-llvm compiler
+      $(warning "Using aosp-llvm" $(KERNEL_LLVM_BIN))
+    else
+      $(warning "Using custom KERNEL_LLVM_BIN" $(KERNEL_LLVM_BIN))
+    endif
   endif
 endif
 
