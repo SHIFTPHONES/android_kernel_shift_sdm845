@@ -94,7 +94,6 @@ static int f2fs_vm_page_mkwrite(struct vm_area_struct *vma,
 		goto out_sem;
 	}
 
-	/* fill the page */
 	f2fs_wait_on_page_writeback(page, DATA, false, true);
 
 	/* wait for GCed page writeback via META_MAPPING */
