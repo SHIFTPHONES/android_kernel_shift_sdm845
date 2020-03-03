@@ -16,30 +16,17 @@
 #include <linux/mm_types.h>
 #include "kgsl_sharedmem.h"
 
-static inline unsigned int
-kgsl_gfp_mask(unsigned int page_order)
-{
-	unsigned int gfp_mask = __GFP_HIGHMEM;
-
-	if (page_order > 0) {
-		gfp_mask |= __GFP_COMP | __GFP_NORETRY | __GFP_NOWARN;
-		gfp_mask &= ~__GFP_RECLAIM;
-	} else
-		gfp_mask |= GFP_KERNEL;
-
-	if (kgsl_sharedmem_get_noretry() == true)
-		gfp_mask |= __GFP_NORETRY | __GFP_NOWARN;
-
-	return gfp_mask;
-}
-
-void kgsl_pool_free_sgt(struct sg_table *sgt);
-void kgsl_pool_free_pages(struct page **pages, unsigned int page_count);
+#ifdef CONFIG_QCOM_KGSL_USE_SHMEM
+static inline void kgsl_init_page_pools(struct platform_device *pdev) { }
+static inline void kgsl_exit_page_pools(void) { }
+#else
 void kgsl_init_page_pools(struct platform_device *pdev);
 void kgsl_exit_page_pools(void);
+void kgsl_pool_free_pages(struct page **pages, unsigned int page_count);
 int kgsl_pool_alloc_page(int *page_size, struct page **pages,
 			unsigned int pages_len, unsigned int *align);
 void kgsl_pool_free_page(struct page *p);
 bool kgsl_pool_avaialable(int size);
+#endif
 #endif /* __KGSL_POOL_H */
 
