@@ -3,6 +3,348 @@
  * Copyright (c) 2020-2023, SHIFT GmbH. All rights reserved.
  */
 
-&vendor {
+#include <dt-bindings/msm/power-on.h>
+
+//#include "shift/dsi-panel-shift-rm69299-amoled-1080x2160-cmd.dtsi"
+#include "shift/dsi-panel-shift-rm69299-amoled-1080x2160-video.dtsi"
+
+#include "axolotl-camera.dtsi"
+
+/ {
+	reserved-memory {
+		ramoops: ramoops@b0000000 {
+			compatible = "removed-dma-pool", "ramoops";
+			no-map;
+			reg = <0 0xb0000000 0 0x00400000>;
+			status = "ok";
+			record-size = <0x40000>;
+			console-size = <0x40000>;
+			ftrace-size = <0x40000>;
+			pmsg-size = <0x200000>;
+			ecc-size = <0x0>;
+		};
+	};
 };
 
+&dsi_shift6mq_rm69299_1080p_video {
+	qcom,dsi-display-active;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply_no_labibb>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <255>;
+	qcom,mdss-dsi-mode-sel-gpio-state = "single_port";
+	qcom,platform-en-gpio = <&tlmm 11 0>;
+	qcom,platform-te-gpio = <&tlmm 10 0>;
+	qcom,platform-reset-gpio = <&tlmm 6 0>;
+};
+
+&firmware {
+	status = "disabled";
+};
+
+&labibb {
+	status = "ok";
+	qcom,qpnp-labibb-mode ="amoled";
+	qcom,swire-control;
+};
+
+/* LED */
+&red_led {
+	qcom,start-idx = <1>;
+	qcom,idx-len = <11>;
+	qcom,duty-pcts = [00 05 0a 0f 14 1d 28 32 3c 4b 64];
+	qcom,lut-flags = <0x1f>;
+	qcom,pause-lo = <2000>;
+	qcom,pause-hi = <1000>;
+	qcom,ramp-step-ms = <100>;
+	qcom,use-blink;
+};
+
+&green_led {
+	qcom,start-idx = <1>;
+	qcom,idx-len = <11>;
+	qcom,duty-pcts = [00 05 0a 0f 14 1d 28 32 3c 4b 64];
+	qcom,lut-flags = <0x1f>;
+	qcom,pause-lo = <2000>;
+	qcom,pause-hi = <1000>;
+	qcom,ramp-step-ms = <100>;
+	qcom,use-blink;
+};
+
+&blue_led {
+	qcom,start-idx = <1>;
+	qcom,idx-len = <11>;
+	qcom,duty-pcts = [00 05 0a 0f 14 1d 28 32 3c 4b 64];
+	qcom,lut-flags = <0x1f>;
+	qcom,pause-lo = <2000>;
+	qcom,pause-hi = <1000>;
+	qcom,ramp-step-ms = <100>;
+	qcom,use-blink;
+};
+/* LED */
+
+&key_cam_snapshot_default {
+	/delete-property/ pins;
+};
+
+&mdss_dsi1 {
+	status = "disabled";
+};
+
+&mdss_mdp {
+	connectors = <&sde_rscc &sde_wb &sde_dp &dsi_shift6mq_rm69299_1080p_video_display>;
+};
+
+&pm8998_l19 {
+	regulator-always-on;
+};
+
+&pmi8998_charger {
+	qcom,usb-icl-ua = <3000000>;
+	qcom,auto-recharge-soc;
+};
+
+&pmi8998_fg {
+	qcom,fg-force-load-profile;
+	qcom,battery-data = <&axolotl_batterydata>;
+	qcom,fg-auto-recharge-soc;
+	qcom,fg-recharge-soc-thr = <99>;
+	qcom,fg-jeita-thresholds = <0 5 40 50>;
+	qcom,battery-thermal-coefficients = [9d 50 ff];
+	qcom,fg-chg-term-current = <200>;
+
+	/delete-property/ qcom,fg-bmd-en-delay-ms;
+};
+
+&pmi8998_haptics {
+	qcom,vmax-mv = <1400>;
+};
+
+&pmi8998_pdphy {
+	vbus-supply = <&smb2_vbus>;
+};
+
+&pmi8998_wled {
+	qcom,disp-type-amoled;
+	qcom,avdd-target-voltage-mv = <7600>;
+
+	/delete-property/ qcom,led-strings-list;
+};
+
+&qupv3_se5_i2c {
+	status = "ok";
+	focaltech@38 {
+		compatible = "focaltech,fts_ts";
+		reg = <0x38>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <125 0x2>;
+		vdd-supply = <&pm8998_l28>;     // 2.8
+		vcc_i2c-supply = <&pm8998_l14>; // 1.8
+		pinctrl-names = "pmx_ts_active",
+				"pmx_ts_suspend","pmx_ts_release";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+		pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+		pinctrl-2 = <&ts_release>;
+		focaltech,name = "ft3518";
+		focaltech,reset-gpio = <&tlmm 99 0x0>;
+		focaltech,irq-gpio = <&tlmm 125 0x2008>;
+		focaltech,display-coords = <0 0 1080 2160>;
+		focaltech,max-touch-number = <5>;
+	};
+};
+
+&qupv3_se11_i2c {
+	status = "ok";
+	sim_tfa98xx_left: tfa9890@34 {
+		compatible = "nxp,tfa9890";
+		reg = <0x34>;
+		reset-gpio = <&tlmm 7 0>;
+	};
+};
+
+&sde_dp {
+	qcom,aux-sel-gpio = <&tlmm 49 0>;
+};
+
+&sdhc_2 {
+	cd-gpios = <&tlmm 126 GPIO_ACTIVE_HIGH>;
+};
+
+&smb1355_charger_0 {
+	status = "disabled";
+};
+
+&snd_934x {
+	qcom,audio-routing =
+		"AIF4 VI", "MCLK",
+		"RX_BIAS", "MCLK",
+		"MADINPUT", "MCLK",
+		"hifi amp", "LINEOUT1",
+		"hifi amp", "LINEOUT2",
+		"AMIC2", "MIC BIAS2",
+		"MIC BIAS2", "Headset Mic",
+		"AMIC3", "MIC BIAS3",
+		"MIC BIAS3", "Noise Mic",
+		"AMIC4", "MIC BIAS2",
+		"MIC BIAS2", "ANCLeft Headset Mic",
+		"AMIC1", "MIC BIAS1",
+		"MIC BIAS1", "Handset Mic",
+		"DMIC0", "MIC BIAS1",
+		"MIC BIAS1", "Digital Mic0",
+		"DMIC1", "MIC BIAS1",
+		"MIC BIAS1", "Digital Mic1",
+		"DMIC2", "MIC BIAS3",
+		"MIC BIAS3", "Digital Mic2",
+		"DMIC3", "MIC BIAS3",
+		"MIC BIAS3", "Digital Mic3",
+		"DMIC4", "MIC BIAS4",
+		"MIC BIAS4", "Digital Mic4",
+		"DMIC5", "MIC BIAS4",
+		"MIC BIAS4", "Digital Mic5",
+		"SpkrLeft IN", "SPK1 OUT",
+		"SpkrRight IN", "SPK2 OUT";
+
+	pinctrl-names = "quat-mi2s-active", "quat-mi2s-sleep",
+			"quat-tdm-active", "quat-tdm-sleep";
+	pinctrl-0 = <&quat_mi2s_active &quat_mi2s_sd0_active &quat_mi2s_sd1_active>;
+	pinctrl-1 = <&quat_mi2s_sleep &quat_mi2s_sd0_sleep &quat_mi2s_sd1_sleep>;
+	pinctrl-2 = <&quat_tdm_active &quat_tdm_dout_active>;
+	pinctrl-3 = <&quat_tdm_sleep &quat_tdm_dout_sleep>;
+
+	asoc-codec = <&stub_codec>, <&ext_disp_audio_codec>,<&sim_tfa98xx_left>;
+	asoc-codec-names = "msm-stub-codec.1",
+			"msm-ext-disp-audio-codec-rx",
+			"nxp-tfa9890";
+
+	qcom,wsa-max-devs = <0>;
+	qcom,msm-mbhc-usbc-audio-supported = <0>;
+
+	/delete-property/ qcom,usbc-analog-en1-gpio;
+	/delete-property/ qcom,usbc-analog-en2-gpio;
+};
+
+&soc {
+	dsi_shift6mq_rm69299_1080p_video_display: qcom,dsi-display@0 {
+		compatible = "qcom,dsi-display";
+		label = "dsi_shift6mq_rm69299_1080p_video_display";
+		qcom,display-type = "primary";
+
+		qcom,dsi-ctrl = <&mdss_dsi0>;
+		qcom,dsi-phy = <&mdss_dsi_phy0>;
+		clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
+			<&mdss_dsi0_pll PCLK_MUX_0_CLK>;
+		clock-names = "mux_byte_clk", "mux_pixel_clk";
+
+		pinctrl-names = "panel_active", "panel_suspend";
+		pinctrl-0 = <&sde_dsi_active &sde_te_active>;
+		pinctrl-1 = <&sde_dsi_suspend &sde_te_suspend>;
+		qcom,platform-en-gpio = <&tlmm 11 0>;
+		qcom,platform-te-gpio = <&tlmm 10 0>;
+		qcom,platform-reset-gpio = <&tlmm 6 0>;
+
+		qcom,dsi-panel = <&dsi_shift6mq_rm69299_1080p_video>;
+		vddio-supply = <&pm8998_l14>;
+		lab-supply = <&lab_regulator>;
+		ibb-supply = <&ibb_regulator>;
+	};
+
+	goodix_fp {
+		compatible = "goodix,fingerprint";
+		interrupt-parent = <&tlmm>;
+		fp-gpio-irq = <&tlmm 121 0x00>;
+		fp-gpio-reset = <&tlmm 122 0x00>;
+		status = "okay";
+		pinctrl-names = "fingerprint_sleep", "fingerprint_active";
+		pinctrl-0 = <&fingerprint_sleep>;
+		pinctrl-1 = <&fingerprint_active>;
+	};
+
+	qcom,qbt1000 {
+		status = "disabled";
+	};
+
+	/delete-node/ qupv3_se5_spi;
+
+	restart@10ac000 {
+		compatible = "qcom,pshold";
+		reg = <0xC264000 0x4>,
+		      <0x1fd3000 0x4>;
+		reg-names = "pshold-base", "tcsr-boot-misc-detect";
+		qcom,force-warm-reboot;
+	};
+};
+
+&spmi_bus {
+	qcom,pm8998@0 {
+		qcom,power-on@800 {
+			qcom,pon_1 {
+				qcom,support-reset = <1>;
+				qcom,s1-timer = <10256>;
+				qcom,s2-timer = <2000>;
+				qcom,s2-type = <PON_POWER_OFF_HARD_RESET>;
+			};
+
+			qcom,pon_3 {
+				qcom,s2-type = <PON_POWER_OFF_WARM_RESET>;
+			};
+		};
+	};
+};
+
+&tlmm {
+	fingerprint {
+		fingerprint_active: fingerprint_active {
+			/* active state */
+			mux {
+				pins = "gpio121";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio121";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up;
+			};
+
+		};
+
+		fingerprint_sleep: fingerprint_sleep {
+			/* sleep state */
+			mux {
+				pins = "gpio121";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio121";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up;
+			};
+		};
+	};
+
+	/delete-node/ qupv3_se5_spi_pins;
+};
+
+&vendor {
+	axolotl_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		#include "shift/SHIFT_fg_batterydata_3820mah.dtsi"
+	};
+};
+
+&wsa881x_0211{
+	status = "disabled";
+};
+
+&wsa881x_0212{
+	status = "disabled";
+};
+
+&wsa881x_0213{
+	status = "disabled";
+};
+
+&wsa881x_0214{
+	status = "disabled";
+};
