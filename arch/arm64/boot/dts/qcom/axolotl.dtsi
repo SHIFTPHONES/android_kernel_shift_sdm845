@@ -102,6 +102,7 @@
 &pmi8998_charger {
 	qcom,usb-icl-ua = <3000000>;
 	qcom,auto-recharge-soc;
+	qcom,fcc-stepping-enable;
 };
 
 &pmi8998_fg {
