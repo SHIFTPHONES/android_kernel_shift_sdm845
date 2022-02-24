@@ -531,7 +531,7 @@ struct dsi_display_mode_priv_info {
 
 	u16 shift_curr_gamma;
 	u16 shift_max_gamma_dtb;
-	u16 shift_def_gamma;
+	s16 shift_def_gamma;
 
 	u32 *phy_timing_val;
 	u32 phy_timing_len;
