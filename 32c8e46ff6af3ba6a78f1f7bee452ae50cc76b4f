@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d11c68f1_1cbd5be8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2022-12-21T19:34:46Z",
+      "side": 1,
+      "message": "Needed when building with CONFIG_EFI enabled (eng defconfig enables it).",
+      "revId": "32c8e46ff6af3ba6a78f1f7bee452ae50cc76b4f",
+      "serverId": "5979fb85-960d-4ec4-8ce0-8568b21942fe"
+    }
+  ]
+}
