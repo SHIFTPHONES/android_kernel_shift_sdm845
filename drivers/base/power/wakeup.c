@@ -91,7 +91,7 @@ struct wakeup_source *wakeup_source_create(const char *name)
 		goto err_name;
 	ws->name = ws_name;
 
-	id = ida_alloc(&wakeup_ida, GFP_KERNEL);
+	id = ida_simple_get(&wakeup_ida, 0, 0, GFP_KERNEL);
 	if (id < 0)
 		goto err_id;
 	ws->id = id;
@@ -137,7 +137,7 @@ static void wakeup_source_record(struct wakeup_source *ws)
 
 static void wakeup_source_free(struct wakeup_source *ws)
 {
-	ida_free(&wakeup_ida, ws->id);
+	ida_simple_remove(&wakeup_ida, ws->id);
 	kfree_const(ws->name);
 	kfree(ws);
 }
