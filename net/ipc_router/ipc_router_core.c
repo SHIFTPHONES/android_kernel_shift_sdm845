@@ -140,7 +140,7 @@ struct msm_ipc_router_xprt_info {
 	u32 initialized;
 	u32 hello_sent;
 	struct list_head pkt_list;
-	struct wakeup_source ws;
+	struct wakeup_source *ws;
 	struct mutex rx_lock_lhb2; /* lock for xprt rx operations */
 	struct mutex tx_lock_lhb2; /* lock for xprt tx operations */
 	u32 need_len;
@@ -575,7 +575,7 @@ struct rr_packet *rr_read(struct msm_ipc_router_xprt_info *xprt_info)
 				    struct rr_packet, list);
 	list_del(&temp_pkt->list);
 	if (list_empty(&xprt_info->pkt_list))
-		__pm_relax(&xprt_info->ws);
+		__pm_relax(xprt_info->ws);
 	mutex_unlock(&xprt_info->rx_lock_lhb2);
 	return temp_pkt;
 }
@@ -1381,7 +1381,7 @@ msm_ipc_router_create_raw_port(void *endpoint,
 		 port_ptr->this_port.port_id,
 		 task_pid_nr(current),
 		 current->comm);
-	port_ptr->port_rx_ws = wakeup_source_register(port_ptr->rx_ws_name);
+	port_ptr->port_rx_ws = wakeup_source_register(NULL, port_ptr->rx_ws_name);
 	if (!port_ptr->port_rx_ws) {
 		kfree(port_ptr);
 		return NULL;
@@ -4144,7 +4144,9 @@ static int msm_ipc_router_add_xprt(struct msm_ipc_router_xprt *xprt)
 	INIT_LIST_HEAD(&xprt_info->pkt_list);
 	mutex_init(&xprt_info->rx_lock_lhb2);
 	mutex_init(&xprt_info->tx_lock_lhb2);
-	wakeup_source_init(&xprt_info->ws, xprt->name);
+	xprt_info->ws = wakeup_source_register(NULL, xprt->name);
+	if (!xprt_info->ws)
+		return -ENOMEM;
 	xprt_info->need_len = 0;
 	xprt_info->abort_data_read = 0;
 	INIT_LIST_HEAD(&xprt_info->list);
@@ -4222,7 +4224,7 @@ static void msm_ipc_router_remove_xprt(struct msm_ipc_router_xprt *xprt)
 
 		msm_ipc_cleanup_routing_table(xprt_info);
 
-		wakeup_source_trash(&xprt_info->ws);
+		wakeup_source_unregister(xprt_info->ws);
 
 		ipc_router_put_xprt_info_ref(xprt_info);
 		wait_for_completion(&xprt_info->ref_complete);
@@ -4342,11 +4344,11 @@ void msm_ipc_router_xprt_notify(struct msm_ipc_router_xprt *xprt,
 	 */
 	if (!is_sensor_port(rport_ptr)) {
 		if (!xprt_info->dynamic_ws) {
-			__pm_stay_awake(&xprt_info->ws);
+			__pm_stay_awake(xprt_info->ws);
 			pkt->ws_need = true;
 		} else {
 			if (is_wakeup_source_allowed) {
-				__pm_stay_awake(&xprt_info->ws);
+				__pm_stay_awake(xprt_info->ws);
 				pkt->ws_need = true;
 			}
 		}

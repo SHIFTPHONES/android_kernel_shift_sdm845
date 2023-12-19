@@ -76,7 +76,7 @@ static int SPIDEV_MAJOR;
 static DECLARE_BITMAP(minors, N_SPI_MINORS);
 static LIST_HEAD(device_list);
 static DEFINE_MUTEX(device_list_lock);
-static struct wakeup_source fp_wakelock;
+static struct wakeup_source *fp_wakelock;
 static struct gf_dev gf;
 
 static struct gf_key_map maps[] = {
@@ -324,7 +324,7 @@ static irqreturn_t gf_irq(int irq, void *handle)
 {
 #if defined(GF_NETLINK_ENABLE)
 	char msg = GF_NET_EVENT_IRQ;
-	__pm_wakeup_event(&fp_wakelock, WAKELOCK_HOLD_TIME);
+	__pm_wakeup_event(fp_wakelock, WAKELOCK_HOLD_TIME);
 	sendnlmsg(&msg);
 #elif defined(GF_FASYNC)
 	struct gf_dev *gf_dev = &gf;
@@ -739,7 +739,6 @@ static int gf_probe(struct platform_device *pdev)
 
 	gf_dev->irq = gf_irq_num(gf_dev);
 
-	wakeup_source_init(&fp_wakelock, "fp_wakelock");
 	status = request_threaded_irq(gf_dev->irq, NULL, gf_irq,
 			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 			"gf", gf_dev);
@@ -754,6 +753,11 @@ static int gf_probe(struct platform_device *pdev)
 
 
 	device_init_wakeup(&pdev->dev, 1);
+	fp_wakelock = wakeup_source_register(&pdev->dev, "fp_wakelock");
+	if (!fp_wakelock) {
+		pr_err("Failed to create wakeup source");
+		status = -ENOMEM;
+	}
 
 	pr_info("version V%d.%d.%02d.%02d\n", VER_MAJOR, VER_MINOR, PATCH_LEVEL, EXTEND_VER);
 
@@ -794,7 +798,7 @@ static int gf_remove(struct platform_device *pdev)
 {
 	struct gf_dev *gf_dev = &gf;
 
-	wakeup_source_trash(&fp_wakelock);
+	wakeup_source_unregister(fp_wakelock);
 
 	/* make sure ops on existing fds can abort cleanly */
 	if (gf_dev->irq)

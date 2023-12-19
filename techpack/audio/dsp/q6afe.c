@@ -80,7 +80,7 @@ enum {
 };
 
 struct wlock {
-	struct wakeup_source ws;
+	struct wakeup_source *ws;
 };
 
 static struct wlock wl;
@@ -7198,7 +7198,7 @@ static int afe_set_cal_fb_spkr_prot(int32_t cal_type, size_t data_size,
 		goto done;
 
 	if (cal_data->cal_info.mode == MSM_SPKR_PROT_CALIBRATION_IN_PROGRESS)
-		__pm_wakeup_event(&wl.ws, jiffies_to_msecs(WAKELOCK_TIMEOUT));
+		__pm_wakeup_event(wl.ws, jiffies_to_msecs(WAKELOCK_TIMEOUT));
 	mutex_lock(&this_afe.cal_data[AFE_FB_SPKR_PROT_CAL]->lock);
 	memcpy(&this_afe.prot_cfg, &cal_data->cal_info,
 		sizeof(this_afe.prot_cfg));
@@ -7345,7 +7345,7 @@ static int afe_get_cal_fb_spkr_prot(int32_t cal_type, size_t data_size,
 		cal_data->cal_info.r0[SP_V2_SPKR_2] = -1;
 	}
 	mutex_unlock(&this_afe.cal_data[AFE_FB_SPKR_PROT_CAL]->lock);
-	__pm_relax(&wl.ws);
+	__pm_relax(wl.ws);
 done:
 	return ret;
 }
@@ -7627,7 +7627,9 @@ static int __init afe_init(void)
 		this_afe.dev_acdb_id[i] = 0;
 		init_waitqueue_head(&this_afe.wait[i]);
 	}
-	wakeup_source_init(&wl.ws, "spkr-prot");
+	wl.ws = wakeup_source_register(NULL, "spkr-prot");
+	if (!wl.ws)
+		return -ENOMEM;
 	ret = afe_init_cal_data();
 	if (ret)
 		pr_err("%s: could not init cal data! %d\n", __func__, ret);
@@ -7642,7 +7644,7 @@ static void __exit afe_exit(void)
 
 	config_debug_fs_exit();
 	mutex_destroy(&this_afe.afe_cmd_lock);
-	wakeup_source_trash(&wl.ws);
+	wakeup_source_unregister(wl.ws);
 }
 
 device_initcall(afe_init);
