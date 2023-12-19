@@ -40,7 +40,7 @@ static ssize_t active_time_ms_show(struct device *dev,
 {
 	struct wakeup_source *ws = dev_get_drvdata(dev);
 	ktime_t active_time =
-		ws->active ? ktime_sub(ktime_get(), ws->last_time) : 0;
+		ws->active ? ktime_sub(ktime_get(), ws->last_time) : (ktime_t){ .tv64 = 0 };
 
 	return sysfs_emit(buf, "%lld\n", ktime_to_ms(active_time));
 }
@@ -70,7 +70,7 @@ static ssize_t max_time_ms_show(struct device *dev,
 
 	if (ws->active) {
 		active_time = ktime_sub(ktime_get(), ws->last_time);
-		if (active_time > max_time)
+		if (active_time.tv64 > max_time.tv64)
 			max_time = active_time;
 	}
 	return sysfs_emit(buf, "%lld\n", ktime_to_ms(max_time));
