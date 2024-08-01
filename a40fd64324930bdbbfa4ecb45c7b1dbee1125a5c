@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "defd4a9f_9d042b46",
+        "filename": "drivers/cpufreq/cpufreq_stats.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2024-08-01T10:53:39Z",
+      "side": 0,
+      "message": "i guess that KCONFIG can be removed then as well",
+      "range": {
+        "startLine": 191,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 35
+      },
+      "revId": "a40fd64324930bdbbfa4ecb45c7b1dbee1125a5c",
+      "serverId": "5979fb85-960d-4ec4-8ce0-8568b21942fe"
+    }
+  ]
+}
