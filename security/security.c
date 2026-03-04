@@ -1790,6 +1790,8 @@ struct security_hook_heads security_hook_heads __lsm_ro_after_init = {
 	.cred_prepare =	LIST_HEAD_INIT(security_hook_heads.cred_prepare),
 	.cred_transfer =
 		LIST_HEAD_INIT(security_hook_heads.cred_transfer),
+	.cred_getsecid =
+		LIST_HEAD_INIT(security_hook_heads.cred_getsecid),
 	.kernel_act_as =
 		LIST_HEAD_INIT(security_hook_heads.kernel_act_as),
 	.kernel_create_files_as =
